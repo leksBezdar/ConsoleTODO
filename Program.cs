@@ -1,4 +1,6 @@
-﻿class Program
+﻿using System.Diagnostics;
+
+class Program
 {
     static FakeDB db = new();
     static ConsoleMenu consoleMenu = new();
@@ -22,10 +24,47 @@
             case "2":
                 DisplayUsers();
                 break;
+            case "3":
+                AddTask();
+                break;
+            case "4":
+                DisplayTasks();
+                break;
             default:
                 Console.WriteLine("Пожалуйста, выберите корректное значение!\n");
                 break;
         }
+    }
+
+    static void AddTask()
+    {
+        Console.Write("Введите заголовок задачи [Не больше 32 символов]: ");
+        string title = Console.ReadLine();
+
+        Console.Write("Введите описание задачи [Опционально, не больше 255 символов]: \n");
+        string description = Console.ReadLine();
+
+        int oid = db.userTasks.Count() + 1;
+
+        var newTask = new UserTask(oid, title, description);
+        db.userTasks.Add(newTask);
+    }
+
+    static void DisplayTasks()
+    {
+        if (db.userTasks.Count() == 0)
+        {
+            Console.WriteLine("На данный момент не существует ни одной задачи!");
+        }
+        else
+        {
+            Console.WriteLine("\nСписок задач: \n");
+            foreach (var task in db.userTasks)
+            {
+                Console.WriteLine(task);
+            }
+        }
+        Console.WriteLine();
     }
 
     static void AddUser()
@@ -34,7 +73,7 @@
         string username = Console.ReadLine();
 
         int oid = db.users.Count() + 1;
-        
+
         var newUser = new User(oid, username);
         db.users.Add(newUser);
     }
@@ -64,6 +103,8 @@ class ConsoleMenu
         Console.WriteLine("Приветствую! Ниже представлен список доступных команд: \n");
         Console.WriteLine("1. Создать пользователя");
         Console.WriteLine("2. Показать всех пользователей");
+        Console.WriteLine("3. Создать задачу");
+        Console.WriteLine("4: Показать все задачи");
         Console.Write("\nВыбери команду, указав ее цифру: ");
 
         while (true)
@@ -81,15 +122,13 @@ class ConsoleMenu
 class UserTask
 {
     public int oid;
-    public int user_id;
     public string title;
     public string? description;
     public bool isDone = false;
 
-    public UserTask(int oid, int user_id, string title, string? description)
+    public UserTask(int oid, string title, string? description)
     {
         this.oid = oid;
-        this.user_id = user_id;
         this.title = title;
         this.description = description;
     }
@@ -97,6 +136,15 @@ class UserTask
     public void Done() => this.isDone = true;
 
     public void Undone() => this.isDone = false;
+
+    public override string ToString()
+    {
+        string taskDetails = $"ID: {oid}\nTitle: {title} \nDescription: {description ?? "Нет описания"} \nDone: {isDone}";
+        string separator = new string('=', taskDetails.Length);
+
+        return $"{separator}\n{taskDetails}\n{separator}\n";
+    }
+
 }
 
 class User
@@ -129,7 +177,11 @@ class User
         }
     }
 
-    public override string ToString() => $"id: {this.oid}, username: {this.username}";
+    public override string ToString() {
+        string userDetails = $"id: {this.oid}\nusername: {this.username}";
+        string separator = new string('=', userDetails.Length);
+        return $"{separator}\n{userDetails}\n{separator}\n";
+    }
 }
 
 class FakeDB
